@@ -9,8 +9,6 @@ Created on Wed Sep  9 14:07:54 2020
 import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -151,6 +149,7 @@ class Models:
         self._best_model.fit(self.x, self.y)
         
         if hasattr(self._best_model, 'feature_importances_'):
+            print("Feature Importances:")
             feature_importance = self._best_model.feature_importances_
             index = self.x.columns
             for i in range(len(feature_importance)):
@@ -188,6 +187,8 @@ model.set_baseline(dataset.get_baseline())
 model.add_model(LinearRegression())
 model.add_model(Lasso())
 model.add_model(GradientBoostingRegressor(max_depth=8))
+model.add_model(Pipeline([("Scaler", StandardScaler()), 
+                          ("GBR", GradientBoostingRegressor(max_depth=8))]))
 model.cv_models()
 
 model.print_all()
@@ -196,3 +197,59 @@ model.print_best_model()
 filename = os.path.join("data", "test_salaries_prediction.csv")
 model.save_to_csv(model.predict(dataset.test), filename)
 
+"""
+Remove 0 duplicated jobs
+Remove 0 jobs with missing values
+Remove 0 jobs with invalid yearsExperience
+Remove 0 jobs with invalid milesFromMetropolis
+Remove 5 jobs with invalid salary
+After clean up train dataset has shape: (999995, 9)
+After clean up test dataset has shape: (1000000, 8)
+Baseline: MSE=1367.123
+
+Model: LinearRegression()
+Scores: -282.1279070970527 -312.13227166363714 -359.3584129264609 -403.5778042514682 -403.9512479425134
+MSE: 352.230
+
+Model: Lasso()
+Scores: -282.0820360328884 -312.31261353358383 -359.51148210993637 -403.5275292113644 -404.05802358420823
+MSE: 352.298
+
+Model: GradientBoostingRegressor(max_depth=8)
+Scores: -254.0025916988774 -282.0900320121363 -317.79428740263006 -342.2880180930733 -330.9507999590655
+MSE: 305.425
+
+Model: Pipeline(steps=[('Scaler', StandardScaler()),
+                       ('GBR', GradientBoostingRegressor(max_depth=8))])
+Scores: -254.00116684416804 -282.10207223980524 -317.80630540658564 -342.3031495765848 -330.9722021579111
+MSE: 305.437
+
+Models: [LinearRegression(), 
+         Lasso(), 
+         GradientBoostingRegressor(max_depth=8), 
+         Pipeline(steps=[('Scaler', StandardScaler()),
+                         ('GBR', GradientBoostingRegressor(max_depth=8))])]
+Scores: [array([-282.1279071 , -312.13227166, -359.35841293, -403.57780425, -403.95124794]), 
+         array([-282.08203603, -312.31261353, -359.51148211, -403.52752921, -404.05802358]), 
+         array([-254.0025917 , -282.09003201, -317.7942874 , -342.28801809, -330.95079996]), 
+         array([-254.00116684, -282.10207224, -317.80630541, -342.30314958, -330.97220216])]
+MSE: [1367.1229507852556, 352.22952877622646, 352.2983368943963, 305.42514583315653, 305.436979245011]
+
+Best model: GradientBoostingRegressor(max_depth=8)
+Best MSE: 305.425
+Feature Importances:
+companyId  0.000193
+jobType  0.003787
+degree  0.002940
+major  0.001043
+industry  0.002110
+yearsExperience  0.151999
+milesFromMetropolis  0.104911
+CJDMI_mean  0.658369
+CJDMI_min  0.008928
+CJDMI_Q1  0.032180
+CJDMI_median  0.006870
+CJDMI_Q3  0.007684
+CJDMI_upper  0.001903
+CJDMI_max  0.017082
+"""
