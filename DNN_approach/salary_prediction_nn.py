@@ -221,7 +221,7 @@ if __name__ == "__main__":
     model.compile(loss='mse', optimizer=tf.optimizers.Adam(), metrics=['mse'])
     
     # Fit model
-    weightpath = "best-weight-batch_size_1000-epochs_100.hdf5"
+    weightpath = "best-weight-batch_size_1000-epochs_400.hdf5"
     checkpoint = tf.keras.callbacks.ModelCheckpoint(weightpath, 
                                                     monitor='val_loss', 
                                                     verbose=True, 
@@ -231,16 +231,19 @@ if __name__ == "__main__":
                         validation_split=0.1, callbacks=[checkpoint])
     
     # Plot loss and val_loss
-    pngpath = "loss-batch_size_1000-epochs_100.png"
+    pngpath = "loss-batch_size_1000-epochs_400.png"
     plt.figure()
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.legend(['loss', 'val_loss'])
     plt.savefig(pngpath)
     
-    # Make prediction and export to csv file
-    csvpath = "test_salaries_prediction_dnn.csv"
+    # Make prediction using model with best weight
+    model.load_weights(weightpath)
     test_pred = model.predict(dataset.test)
+    
+    # Export prediction to csv file
+    csvpath = "test_salaries_prediction_dnn.csv"
     pd.DataFrame(test_pred, index=dataset.test.index,
                  columns=[dataset.target]).to_csv(csvpath)
 
