@@ -55,10 +55,10 @@ class Data:
 
     def split_data(self):
         """
-        Split and return feature and target DataFrame
+        Split and return feature and target dataframe
 
         Returns:
-            Tuple of feature and target DataFrame
+            Tuple of feature and target dataframe
         """
         return self.train.drop(columns=self.target), self.train[self.target]
     
@@ -98,44 +98,59 @@ class Data:
         Check and remove invalid instance(s)
         """
         self._drop_duplicates(self.train)
+        self._drop_duplicates(self.test)
         self._drop_null(self.train)
+        self._drop_null(self.test)
         self._check_col_validity(self.train, 'yearsExperience', 0)
+        self._check_col_validity(self.test,  'yearsExperience', 0)
         self._check_col_validity(self.train, 'milesFromMetropolis', 0)
+        self._check_col_validity(self.test,  'milesFromMetropolis', 0)
         self._check_col_validity(self.train, 'salary', 1)
 
-    def _drop_duplicates(self, data):
+    def _drop_duplicates(self, df):
         """
         Drop duplicated instance(s)
 
         Args:
-            data: dataframe to be checked
+            df: dataframe to be checked
         """
-        print("Remove %d duplicated jobs" % data.duplicated().sum())
-        data.drop_duplicates(inplace=True)
+        print("Remove %d duplicated jobs" % df.duplicated().sum())
+        df.drop_duplicates(inplace=True)
 
-    def _drop_null(self, data):
+    def _drop_null(self, df):
         """
         Drop instance(s) with np.None or np.NaN
 
         Args:
-            data: dataframe to be checked
+            df: dataframe to be checked
         """
-        invalid_jobs = data.index[data.isnull().sum(axis=1).gt(0)].values
+        invalid_jobs = df.index[df.isnull().sum(axis=1).gt(0)].values
         print("Remove %d jobs with missing values" % len(invalid_jobs))
-        data.drop(index=invalid_jobs, inplace=True)
+        df.drop(index=invalid_jobs, inplace=True)
 
-    def _check_col_validity(self, data, col, threshold):
+    def _fill_null(self, df):
+        """
+        Fill np.None or np.NaN with mean value
+
+        Args:
+            df: dataframe to be checked
+        """
+        invalid_jobs = df.index[df.isnull().sum(axis=1).gt(0)].values
+        print("Fill %d missing values with feature mean" % len(invalid_jobs))
+        df.fillna(df.mean(), inplace=True)
+    
+    def _check_col_validity(self, df, col, threshold):
         """
         Drop instance(s) having invalid value at given column
 
         Args:
-            data: dataframe to be checked
+            df: dataframe to be checked
             col: column to be inspect
             threshold: invalid if value less than threshold
         """
-        invalid_jobs = data.index[data[col].lt(threshold)]
+        invalid_jobs = df.index[df[col].lt(threshold)]
         print("Remove %d jobs with invalid %s" % (len(invalid_jobs), col))
-        data.drop(index=invalid_jobs, inplace=True)
+        df.drop(index=invalid_jobs, inplace=True)
 
 
 class FeatureEngineer(Data):
@@ -169,12 +184,8 @@ class FeatureEngineer(Data):
             col_name: prefix added to new column names
         """
         self._generate_stats(cols, col_name)
-        
-        self.train = pd.merge(self.train, self._stats, on=cols)
-        self.train.set_index(self.index, inplace=True)
-        
-        self.test = pd.merge(self.test, self._stats, on=cols)
-        self.test.set_index(self.index, inplace=True)
+        self.train = self._merge_stats(self.train, cols)
+        self.test = self._merge_stats(self.test,  cols)
 
     def _generate_stats(self, cols, col_name):
         """
@@ -188,6 +199,7 @@ class FeatureEngineer(Data):
         Q1 = group.quantile(0.25)
         Q3 = group.quantile(0.75)
         upper_bound = Q3 + 1.5 * (Q3 - Q1)
+        
         self._stats = pd.DataFrame({col_name+"_mean" : group.mean()})
         self._stats[col_name + "_min"] = group.min()
         self._stats[col_name + "_Q1"] = Q1
@@ -195,6 +207,22 @@ class FeatureEngineer(Data):
         self._stats[col_name + "_Q3"] = Q3
         self._stats[col_name + "_upper"] = upper_bound
         self._stats[col_name + "_max"] = group.max()
+        
+    def _merge_stats(self, df, cols):
+        """
+        Merge group statistics to dataframe
+        
+        Args:
+            df: dataframe to be merged
+            cols: list of columns
+            
+        Returns:
+            df: modified dataframe
+        """
+        df = pd.merge(df, self._stats, on=cols, how='left')
+        df.set_index(self.index, inplace=True)
+        self._fill_null(df)
+        return df
 
 
 if __name__ == "__main__":
@@ -221,7 +249,7 @@ if __name__ == "__main__":
     model.compile(loss='mse', optimizer=tf.optimizers.Adam(), metrics=['mse'])
     
     # Fit model
-    weightpath = "best-weight-batch_size_1000-epochs_400.hdf5"
+    weightpath = "best-weight-batch_size_1000-epochs_100.hdf5"
     checkpoint = tf.keras.callbacks.ModelCheckpoint(weightpath, 
                                                     monitor='val_loss', 
                                                     verbose=True, 
@@ -231,7 +259,7 @@ if __name__ == "__main__":
                         validation_split=0.1, callbacks=[checkpoint])
     
     # Plot loss and val_loss
-    pngpath = "loss-batch_size_1000-epochs_400.png"
+    pngpath = "loss-batch_size_1000-epochs_100.png"
     plt.figure()
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
