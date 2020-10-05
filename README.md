@@ -6,6 +6,20 @@ In job posting websites like Glassdoor, LinkedIn, and Indeed, each post lists it
 
 The goal of this project is to create a model that estimates a salary given jobs with various of requirements.
 
+## Deliverables
+- SalaryPredictions.zip: contains data files
+
+- ML_approach/: contains files using machine learning approach
+- ML_approach/Salary_Prediction_Analysis.ipynb: notebook includes detailed data extraction, data loading, data wrangling, data exploring, feature engineering, and model training.
+- ML_approach/salary_prediction_final_code.py: cleaned code in Python
+- ML_approach/test_salaries_prediction.csv: salary prediction of test dataset
+
+- DNN_approach/: contains files using deep neural network approach
+- DNN_approach/salary_prediction_nn.py: cleaned code in Python
+- DNN_approach/test_salaries_prediction_dnn.csv: salary prediction of test dataset
+- DNN_approach/best-weight-batch_size_1000-epochs_###.hdf5: weight of the best model with least loss
+- DNN_approach/loss-batch_size_1000-epochs_###.png: plot of history of loss and validation loss during training
+
 ## Approach
 1. Data loading
     * train_features.csv file contains training set features
