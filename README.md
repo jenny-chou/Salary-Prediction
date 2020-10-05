@@ -10,7 +10,7 @@ The goal of this project is to create a model that estimates a salary given jobs
 - SalaryPredictions.zip: contains data files
 
 - ML_approach/: contains files using machine learning approach
-- ML_approach/Salary_Prediction_Analysis.ipynb: notebook includes detailed data extraction, data loading, data wrangling, data exploring, feature engineering, and model training.
+- ML_approach/Salary_Prediction_Analysis.ipynb: notebook includes detailed data extraction, data loading, data wrangling, data analysis, feature engineering, and model training.
 - ML_approach/salary_prediction_final_code.py: cleaned code in Python
 - ML_approach/test_salaries_prediction.csv: salary prediction of test dataset
 
