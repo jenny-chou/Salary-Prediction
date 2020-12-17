@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="https://storage.googleapis.com/kaggle-competitions/kaggle/3342/media/salary%20prediction%20engine%20v2.png">
+</p>
+
+
 # Salary Prediction Project
 ## Define problem
 In job posting websites like Glassdoor, LinkedIn, and Indeed, each post lists its required skills, education, qualification, experience, ..., and of course, salary. 
